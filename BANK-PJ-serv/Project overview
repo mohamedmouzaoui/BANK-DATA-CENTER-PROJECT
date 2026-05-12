@@ -1,0 +1,184 @@
+
+## **Project Overview**
+- **Date Created:** May 2026
+- **Type:** Cisco Packet Tracer 8.1 Enterprise Lab
+- **Devices:** 21 (4 routers, 10 switches, 2 firewalls, 5 servers)
+- **Architecture:** 3-Tier (Core → Aggregation → Access)
+- **Key Protocols:** OSPF, BGP, HSRP, NAT, VLANs, ACLs
+- **Final Deliverable:** BANK-COMPLETE-WORKING.pkt (fully operational)
+
+---
+
+## **DOCUMENTATION FILES**
+
+### **1. bank-dc-detailed-explanation.md** (35 KB)
+**Purpose:** Deep understanding of WHY each component exists
+**Contains:**
+- Project goals and statistics
+- Why 3-tier architecture (separation of concerns)
+- Detailed explanation of OSPF (dynamic routing)
+- Detailed explanation of BGP (internet connectivity)
+- HSRP redundancy deep dive
+- VLAN isolation and benefits
+- Firewall layering and security
+- NAT/PAT concepts
+- QoS bandwidth management
+- Complete device reference (all 21 devices)
+**Use When:** Learning network concepts, understanding design decisions
+
+### **2. bank-dc-config-walkthrough.md** (25 KB)
+**Purpose:** Step-by-step configuration instructions
+**Contains:**
+- Phase 0: Project setup
+- Phase 1: Add devices
+- Phase 2: Connect cables
+- Phase 3: Configure WAN interfaces
+- Phase 4-12: VLAN, trunk, SVI, OSPF, BGP, HSRP, NAT, firewall, server configs
+- Phase 13: Testing & verification
+- Complete copy-paste configuration blocks
+- Troubleshooting guide for common failures
+**Use When:** Building the network, need exact commands, fixing issues
+
+### **3. bank-dc-advanced-reference.md** (17 KB)
+**Purpose:** Advanced concepts and quick reference
+**Contains:**
+- How routing actually works (step-by-step packet journey)
+- Wildcard mask explanation
+- VLAN tagging deep dive (802.1Q format)
+- ACL rule processing order
+- HSRP election and failover scenarios
+- NAT translation tables
+- Complete config blocks (copy-paste ready)
+- Verification checklist (pre-deployment)
+- Emergency procedures
+**Use When:** Advanced troubleshooting, verification, optimization
+
+---
+
+## **PROJECT FACTS**
+
+### **IP Addressing**
+- **WAN Block:** 203.0.113.0/29 (ISP connectivity)
+- **Internal Subnets:** 10.0.10.0/24 through 10.0.80.0/24 (8 VLANs)
+- **VLAN Gateways (CORE):** .1 addresses
+- **VLAN Gateways (AGG):** .2 addresses
+- **HSRP Virtual IPs:** .254 addresses
+
+### **Routing Protocols**
+- **OSPF:** Process 1, Area 0, MD5 key "BANKOSPF2026"
+- **Router IDs:** 1.1.1.3, 2.2.2.3 (routers), 3.3.3.1-2, 5.5.5.1-2 (switches)
+- **BGP:** AS 65001 (bank), AS 100 (ISP-R1), AS 200 (ISP-R2)
+- **Dual ISP peering** for redundancy
+
+### **VLAN Configuration**
+| VLAN | Name | Subnet | Gateway | Purpose |
+|------|------|--------|---------|---------|
+| 10 | MANAGEMENT | 10.0.10.0/24 | 10.0.10.254 | Admin access |
+| 20 | SERVERS | 10.0.20.0/24 | 10.0.20.254 | Web servers |
+| 30 | DATABASE | 10.0.30.0/24 | 10.0.30.254 | Data storage |
+| 40 | INTERNAL | 10.0.40.0/24 | 10.0.40.254 | Infrastructure |
+| 50 | SOC | 10.0.50.0/24 | 10.0.50.254 | Security ops |
+| 60 | SIEM | 10.0.60.0/24 | 10.0.60.254 | Log collection |
+| 70 | STORAGE | 10.0.70.0/24 | 10.0.70.254 | NAS/backup |
+| 80 | PEERING | 10.0.80.0/24 | 10.0.80.254 | Firewall zone |
+| 99 | BLACKHOLE | 10.0.99.0/24 | — | Unused ports |
+
+### **Device Reference**
+- **CORE-R1, CORE-R2:** 2911 routers, BGP speakers, NAT, WAN gateways
+- **CORE-SW1, CORE-SW2:** 3560-24PS L3 switches, VLAN routing, HSRP primary/standby
+- **AGG-SW1, AGG-SW2:** 3560-24PS L3 switches, distribution, secondary HSRP
+- **ACC-SW1 through ACC-SW6:** 2960-24TT L2 switches, pure switching
+- **FW1, FW2:** ASA 5506-X firewalls, outside→dmz and dmz→inside
+- **Servers:** Load-Balancer (10.0.20.100), DB (10.0.30.100), SOC/SIEM/IDS/IPS
+
+### **Security Configuration**
+- **FW1:** Blocks RFC1918 spoofing, allows HTTP/HTTPS
+- **FW2:** Database access control (VLAN 20,50 only on port 3306)
+- **Static NAT:** Load-Balancer 10.0.20.100 ↔ 203.0.113.150
+- **Dynamic PAT:** All internal traffic through WAN interface
+
+### **Redundancy**
+- **HSRP:** First-hop gateway redundancy (CORE-SW1 active, CORE-SW2 standby)
+- **Dual ISP:** Two internet connections via BGP
+- **Dual routing:** CORE-R1 and CORE-R2 for internet access
+- **Dual distribution:** AGG-SW1 and AGG-SW2 for aggregation layer
+
+---
+
+## **KEY CONFIGURATION NOTES**
+
+1. **MD5 Authentication:** All OSPF neighbors must have `BANKOSPF2026` key
+2. **Router IDs:** Must be unique (1.1.1.3, 2.2.2.3, 3.3.3.1, 3.3.3.2, 5.5.5.1, 5.5.5.2)
+3. **Trunk Allowed VLANs:** Always include 10,20,30,40,50,60,70,80,99
+4. **SVI Passive Interfaces:** OSPF SVIs should be passive (no hellos to servers)
+5. **Access Port Security:** Unused ports shutdown and assigned to VLAN 99
+6. **ASA Interface Names:** GigabitEthernet1/1 through 1/8 (NOT 0/x for Packet Tracer)
+7. **Server IPs:** Use #IPCONFIG comment format in Server-PT terminal
+8. **Preempt Enabled:** Ensures high-priority device reclaims active role after recovery
+
+---
+
+## **TESTING COMMANDS**
+
+### **Essential Verification**
+```
+show ip ospf neighbor                [OSPF status]
+show ip bgp summary                  [BGP status]
+show standby brief                   [HSRP status]
+show ip nat translations             [NAT mappings]
+show ip route                        [Routing table]
+ping 10.0.20.254                     [Gateway connectivity]
+ping 10.0.30.100                     [Server reachability]
+show access-list                     [Firewall rules]
+show interface trunk                 [VLAN trunk status]
+show vlan brief                      [VLAN inventory]
+```
+
+---
+
+## **COMMON MISTAKES & FIXES**
+
+| Problem | Root Cause | Fix |
+|---------|-----------|-----|
+| OSPF neighbors won't form | MD5 key mismatch | Verify `BANKOSPF2026` on all neighbors |
+| Ping fails between VLANs | Trunk not configured | Enable trunk mode on switch ports |
+| HSRP not electing | SVI down | Create VLAN SVI first |
+| Firewall blocking good traffic | Wrong ACL rules | Review access-list and source/dest IPs |
+| BGP not establishing | Neighbor IP wrong | Verify WAN IP matches peer's IP |
+| NAT not working | Wrong interface | Ensure outside interface specified |
+
+---
+
+## **RECREATION DIFFICULTY: MEDIUM-HIGH**
+
+**Estimated Time:** 2-3 hours for complete rebuild  
+**Difficulty Level:** Intermediate (requires understanding of:)
+- L3 switching concepts
+- Dynamic routing (OSPF)
+- Gateway redundancy (HSRP)
+- Firewall security policies
+- NAT/PAT
+- VLAN trunking
+
+**Recommended Approach:**
+1. Read bank-dc-detailed-explanation.md (understand concepts)
+2. Follow bank-dc-config-walkthrough.md step-by-step
+3. Reference bank-dc-advanced-reference.md for detailed command syntax
+4. Test after each phase
+5. Use emergency procedures if issues arise
+
+---
+
+## **SUCCESS METRICS**
+
+When complete, you should be able to:
+- ✅ Show OSPF neighbors forming in all devices
+- ✅ Show BGP peers established to both ISPs
+- ✅ Show HSRP active/standby election
+- ✅ Ping between all VLANs successfully
+- ✅ Demonstrate firewall blocking unauthorized traffic
+- ✅ Show NAT translation of Load-Balancer
+- ✅ Verify routing table with OSPF and BGP routes
+- ✅ Simulate switch/router failure and see traffic failover
+
+---
